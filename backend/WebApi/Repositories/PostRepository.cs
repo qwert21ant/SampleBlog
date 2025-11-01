@@ -26,14 +26,9 @@ public class PostRepository : IPostRepository
         return await query.FirstOrDefaultAsync(p => p.Id == id);
     }
 
-    public async Task<IEnumerable<Post>> GetAllAsync(int page, int pageSize, bool? isPublished = null, bool includeUnpublished = false)
+    public async Task<IEnumerable<Post>> GetAllAsync(int page, int pageSize, bool? isPublished = null)
     {
         var query = _context.Posts.Include(p => p.Author).AsQueryable();
-        
-        if (!includeUnpublished && isPublished != false)
-        {
-            query = query.Where(p => p.IsPublished);
-        }
         
         if (isPublished.HasValue)
         {
@@ -47,54 +42,13 @@ public class PostRepository : IPostRepository
             .ToListAsync();
     }
 
-    public async Task<int> GetTotalCountAsync(bool? isPublished = null, bool includeUnpublished = false)
+    public async Task<int> GetTotalCountAsync(bool? isPublished = null)
     {
         var query = _context.Posts.AsQueryable();
-        
-        if (!includeUnpublished && isPublished != false)
-        {
-            query = query.Where(p => p.IsPublished);
-        }
         
         if (isPublished.HasValue)
         {
             query = query.Where(p => p.IsPublished == isPublished.Value);
-        }
-        
-        return await query.CountAsync();
-    }
-
-    public async Task<IEnumerable<Post>> GetPublishedAsync(int page, int pageSize, string? search = null)
-    {
-        var query = _context.Posts
-            .Include(p => p.Author)
-            .Where(p => p.IsPublished);
-        
-        if (!string.IsNullOrWhiteSpace(search))
-        {
-            query = query.Where(p => 
-                p.Title.Contains(search) || 
-                p.Subtitle.Contains(search) || 
-                p.Text.Contains(search));
-        }
-        
-        return await query
-            .OrderByDescending(p => p.PublishedAt ?? p.CreatedAt)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
-    }
-
-    public async Task<int> GetPublishedCountAsync(string? search = null)
-    {
-        var query = _context.Posts.Where(p => p.IsPublished);
-        
-        if (!string.IsNullOrWhiteSpace(search))
-        {
-            query = query.Where(p => 
-                p.Title.Contains(search) || 
-                p.Subtitle.Contains(search) || 
-                p.Text.Contains(search));
         }
         
         return await query.CountAsync();
@@ -110,46 +64,34 @@ public class PostRepository : IPostRepository
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<Post>> SearchAsync(string query, int page, int pageSize)
+    public async Task<IEnumerable<Post>> GetByAuthorAsync(int authorId, int page, int pageSize, bool? isPublished = null)
     {
-        return await _context.Posts
+        var query = _context.Posts
             .Include(p => p.Author)
-            .Where(p => p.IsPublished && 
-                (p.Title.Contains(query) || 
-                 p.Subtitle.Contains(query) || 
-                 p.Text.Contains(query)))
+            .Where(p => p.AuthorId == authorId);
+
+        if (isPublished.HasValue)
+        {
+            query = query.Where(p => p.IsPublished == isPublished.Value);
+        }
+
+        return await query
             .OrderByDescending(p => p.PublishedAt ?? p.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
     }
 
-    public async Task<int> GetSearchCountAsync(string query)
+    public async Task<int> GetByAuthorCountAsync(int authorId, bool? isPublished)
     {
-        return await _context.Posts
-            .Where(p => p.IsPublished && 
-                (p.Title.Contains(query) || 
-                 p.Subtitle.Contains(query) || 
-                 p.Text.Contains(query)))
-            .CountAsync();
-    }
-
-    public async Task<IEnumerable<Post>> GetByAuthorAsync(int authorId, int page, int pageSize)
-    {
-        return await _context.Posts
-            .Include(p => p.Author)
-            .Where(p => p.AuthorId == authorId && p.IsPublished)
-            .OrderByDescending(p => p.PublishedAt ?? p.CreatedAt)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
-    }
-
-    public async Task<int> GetByAuthorCountAsync(int authorId)
-    {
-        return await _context.Posts
-            .Where(p => p.AuthorId == authorId && p.IsPublished)
-            .CountAsync();
+        var query = _context.Posts.Where(p => p.AuthorId == authorId);
+        
+        if (isPublished.HasValue)
+        {
+            query = query.Where(p => p.IsPublished == isPublished.Value);
+        }
+        
+        return await query.CountAsync();
     }
 
     public async Task<Post> CreateAsync(Post post)

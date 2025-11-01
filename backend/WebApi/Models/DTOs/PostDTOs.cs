@@ -55,6 +55,20 @@ public class PostDto
     public UserDto Author { get; set; } = null!;
 }
 
+public class PostPublicDto
+{
+    public int Id { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public string Subtitle { get; set; } = string.Empty;
+    public string Text { get; set; } = string.Empty;
+    public string? MainImageUrl { get; set; }
+    public bool IsPublished { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+    public DateTime? PublishedAt { get; set; }
+    public string AuthorUsername { get; set; } = string.Empty;
+}
+
 public class PostSummaryDto
 {
     public int Id { get; set; }
@@ -63,7 +77,26 @@ public class PostSummaryDto
     public string? MainImageUrl { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? PublishedAt { get; set; }
-    public UserDto Author { get; set; } = null!;
+    public string AuthorUsername { get; set; } = string.Empty;
+}
+
+public class ImageDetailsDto
+{
+    public int Id { get; set; }
+    public int PostId { get; set; }
+    public string FileName { get; set; } = string.Empty;
+    public string ContentType { get; set; } = string.Empty;
+    public long Size { get; set; }
+    public string? AltText { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public string Url { get; set; } = string.Empty;
+}
+
+public class PostStatsDto
+{
+    public int TotalPosts { get; set; }
+    public int PublishedPosts { get; set; }
+    public int DraftPosts { get; set; }
 }
 
 public class PaginatedResult<T>

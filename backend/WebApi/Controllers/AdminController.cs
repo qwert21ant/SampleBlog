@@ -12,11 +12,13 @@ namespace WebApi.Controllers;
 public class AdminController : ControllerBase
 {
     private readonly IPostService _postService;
+    private readonly IImageService _imageService;
     private readonly ILogger<AdminController> _logger;
 
-    public AdminController(IPostService postService, ILogger<AdminController> logger)
+    public AdminController(IPostService postService, IImageService imageService, ILogger<AdminController> logger)
     {
         _postService = postService;
+        _imageService = imageService;
         _logger = logger;
     }
 
@@ -28,7 +30,9 @@ public class AdminController : ControllerBase
     {
         _logger.LogInformation("Fetching posts - Page: {Page}, PageSize: {PageSize}", page, pageSize);
         
-        var result = await _postService.GetPostsAsync(page, pageSize, isPublished, includeUnpublished: true);
+        var currentUserId = GetCurrentUserId();
+        var result = await _postService.GetPostsByAuthorAsync(currentUserId, page, pageSize);
+        
         return Ok(result);
     }
 
@@ -37,6 +41,7 @@ public class AdminController : ControllerBase
     {
         _logger.LogInformation("Fetching post with ID: {PostId}", id);
         
+        await ValidatePostOwnershipAsync(id);
         var post = await _postService.GetPostByIdAsync(id, includeUnpublished: true);
         return Ok(post);
     }
@@ -57,6 +62,7 @@ public class AdminController : ControllerBase
     {
         _logger.LogInformation("Updating post with ID {PostId}", id);
         
+        await ValidatePostOwnershipAsync(id);
         var post = await _postService.UpdatePostAsync(id, request);
         return Ok(post);
     }
@@ -66,6 +72,7 @@ public class AdminController : ControllerBase
     {
         _logger.LogInformation("Deleting post with ID {PostId}", id);
         
+        await ValidatePostOwnershipAsync(id);
         await _postService.DeletePostAsync(id);
         return NoContent();
     }
@@ -75,6 +82,7 @@ public class AdminController : ControllerBase
     {
         _logger.LogInformation("Publishing post with ID {PostId}", id);
         
+        await ValidatePostOwnershipAsync(id);
         var post = await _postService.PublishPostAsync(id);
         return Ok(post);
     }
@@ -84,14 +92,17 @@ public class AdminController : ControllerBase
     {
         _logger.LogInformation("Unpublishing post with ID {PostId}", id);
         
+        await ValidatePostOwnershipAsync(id);
         var post = await _postService.UnpublishPostAsync(id);
         return Ok(post);
     }
 
-    [HttpPost("posts/{id}/image")]
-    public async Task<ActionResult> UploadPostImage(int id, [FromForm] ImageUploadRequest request)
+    [HttpPost("posts/{postId}/images")]
+    public async Task<ActionResult<object>> UploadImageForPost(int postId, [FromForm] ImageUploadRequest request)
     {
-        _logger.LogInformation("Uploading image for post ID: {PostId}", id);
+        _logger.LogInformation("Uploading image: {FileName} for post: {PostId}", request.Image?.FileName, postId);
+        
+        await ValidatePostOwnershipAsync(postId);
         
         if (request.Image == null || request.Image.Length == 0)
         {
@@ -111,26 +122,127 @@ public class AdminController : ControllerBase
             return BadRequest("Image size must be less than 5MB");
         }
 
-        await _postService.AddImageToPostAsync(id, request.Image);
-        return Ok(new { message = "Image uploaded successfully" });
-    }
-
-    [HttpDelete("posts/{id}/images")]
-    public async Task<ActionResult> DeletePostImages(int id)
-    {
-        _logger.LogInformation("Deleting all images for post ID: {PostId}", id);
+        var image = await _imageService.UploadImageAsync(postId, request.Image, request.AltText);
         
-        await _postService.DeletePostImagesAsync(id);
-        return Ok(new { message = "Images deleted successfully" });
+        return CreatedAtAction(nameof(GetImage), new { id = image.Id }, new ImageDetailsDto
+        {
+            Id = image.Id,
+            PostId = image.PostId,
+            FileName = image.FileName,
+            ContentType = image.ContentType,
+            Size = image.Size,
+            AltText = image.AltText,
+            CreatedAt = image.CreatedAt,
+            Url = $"/api/admin/images/{image.Id}"
+        });
     }
 
+    [HttpGet("images/{imageId}")]
+    public async Task<IActionResult> GetImage(int imageId)
+    {
+        _logger.LogInformation("Fetching image with ID: {ImageId}", imageId);
 
+        await ValidateImageOwnershipAsync(imageId);
+        
+        var imageData = await _imageService.GetImageAsync(imageId);
+        
+        if (imageData == null)
+        {
+            return NotFound();
+        }
+
+        return File(imageData.Value.Data, imageData.Value.ContentType, imageData.Value.FileName);
+    }
+
+    [HttpGet("posts/{postId}/images")]
+    public async Task<ActionResult<IEnumerable<ImageDetailsDto>>> GetImagesByPost(int postId)
+    {
+        _logger.LogInformation("Fetching images for post: {PostId}", postId);
+        
+        await ValidatePostOwnershipAsync(postId);
+        var images = await _imageService.GetImageDetailsByPostAsync(postId);
+        
+        // Update URLs to use admin endpoint
+        var result = images.Select(i => new ImageDetailsDto
+        {
+            Id = i.Id,
+            PostId = i.PostId,
+            FileName = i.FileName,
+            ContentType = i.ContentType,
+            Size = i.Size,
+            AltText = i.AltText,
+            CreatedAt = i.CreatedAt,
+            Url = $"/api/admin/images/{i.Id}"
+        });
+        
+        return Ok(result);
+    }
+
+    [HttpDelete("images/{id}")]
+    public async Task<IActionResult> DeleteImage(int id)
+    {
+        _logger.LogInformation("Deleting image with ID: {ImageId}", id);
+        
+        await ValidateImageOwnershipAsync(id);
+        var deleted = await _imageService.DeleteImageAsync(id);
+        
+        if (!deleted)
+        {
+            return NotFound();
+        }
+        
+        return NoContent();
+    }
+
+    [HttpGet("stats")]
+    public async Task<ActionResult<PostStatsDto>> GetPostStats()
+    {
+        _logger.LogInformation("Fetching post statistics for current user");
+        
+        var currentUserId = GetCurrentUserId();
+        var stats = await _postService.GetPostStatsByAuthorAsync(currentUserId);
+        
+        return Ok(stats);
+    }
 
     private int GetCurrentUserId()
     {
-        // TODO: Extract user ID from JWT token claims
-        // For now, return 1 - this will be implemented when authentication is set up
         var userIdClaim = User.FindFirst("userId") ?? User.FindFirst("sub");
-        return userIdClaim != null ? int.Parse(userIdClaim.Value) : 1;
+        
+        if (userIdClaim == null)
+        {
+            throw new UnauthorizedAccessException("User ID not found in JWT token");
+        }
+        
+        if (!int.TryParse(userIdClaim.Value, out var userId))
+        {
+            throw new UnauthorizedAccessException("Invalid user ID in JWT token");
+        }
+        
+        return userId;
+    }
+
+    private async Task ValidatePostOwnershipAsync(int postId)
+    {
+        var currentUserId = GetCurrentUserId();
+        var post = await _postService.GetPostByIdAsync(postId, includeUnpublished: true);
+        
+        if (post.Author.Id != currentUserId)
+        {
+            throw new UnauthorizedAccessException("You don't have permission to access this post");
+        }
+    }
+
+    private async Task ValidateImageOwnershipAsync(int imageId)
+    {
+        // Get the image details including postId
+        var imageDetails = await _imageService.GetImageDetailsAsync(imageId);
+        if (imageDetails == null)
+        {
+            throw new FileNotFoundException("Image not found");
+        }
+        
+        // Now validate that the post belongs to the current user
+        await ValidatePostOwnershipAsync(imageDetails.PostId);
     }
 }

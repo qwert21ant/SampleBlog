@@ -36,6 +36,23 @@ public static class MappingExtensions
         };
     }
 
+    public static PostPublicDto ToPublicDto(this PostDto post)
+    {
+        return new PostPublicDto
+        {
+            Id = post.Id,
+            Title = post.Title,
+            Subtitle = post.Subtitle,
+            Text = post.Text,
+            MainImageUrl = post.MainImageUrl,
+            IsPublished = post.IsPublished,
+            CreatedAt = post.CreatedAt,
+            UpdatedAt = post.UpdatedAt,
+            PublishedAt = post.PublishedAt,
+            AuthorUsername = post.Author.Username
+        };
+    }
+
     public static PostSummaryDto ToSummaryDto(this Post post)
     {
         var firstImage = post.Images?.FirstOrDefault();
@@ -46,11 +63,11 @@ public static class MappingExtensions
             Title = post.Title,
             Subtitle = post.Subtitle,
             MainImageUrl = firstImage != null 
-                ? $"/api/images/{firstImage.Id}" 
+                ? $"/api/posts/images/{firstImage.Id}" 
                 : null,
             CreatedAt = post.CreatedAt,
             PublishedAt = post.PublishedAt,
-            Author = post.Author.ToDto()
+            AuthorUsername = post.Author.Username
         };
     }
 

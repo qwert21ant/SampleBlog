@@ -1,6 +1,7 @@
 using WebApi.Exceptions;
 using WebApi.Interfaces;
 using WebApi.Models;
+using WebApi.Models.DTOs;
 
 namespace WebApi.Services;
 
@@ -54,6 +55,29 @@ public class ImageService : IImageService
         return (image.Data, image.ContentType, image.FileName);
     }
 
+    public async Task<ImageDetailsDto?> GetImageDetailsAsync(int id)
+    {
+        _logger.LogInformation("Getting image details: {ImageId}", id);
+
+        var image = await _imageRepository.GetByIdAsync(id);
+        if (image == null)
+        {
+            return null;
+        }
+
+        return new ImageDetailsDto
+        {
+            Id = image.Id,
+            PostId = image.PostId,
+            FileName = image.FileName,
+            ContentType = image.ContentType,
+            Size = image.Size,
+            AltText = image.AltText,
+            CreatedAt = image.CreatedAt,
+            Url = $"/api/images/{image.Id}" // Default URL, can be overridden by controllers
+        };
+    }
+
     public async Task<bool> DeleteImageAsync(int id)
     {
         _logger.LogInformation("Deleting image: {ImageId}", id);
@@ -71,6 +95,25 @@ public class ImageService : IImageService
     {
         _logger.LogInformation("Getting images for post: {PostId}", postId);
         return await _imageRepository.GetByPostIdAsync(postId);
+    }
+
+    public async Task<IEnumerable<ImageDetailsDto>> GetImageDetailsByPostAsync(int postId)
+    {
+        _logger.LogInformation("Getting image details for post: {PostId}", postId);
+        
+        var images = await _imageRepository.GetByPostIdAsync(postId);
+        
+        return images.Select(image => new ImageDetailsDto
+        {
+            Id = image.Id,
+            PostId = image.PostId,
+            FileName = image.FileName,
+            ContentType = image.ContentType,
+            Size = image.Size,
+            AltText = image.AltText,
+            CreatedAt = image.CreatedAt,
+            Url = $"/api/images/{image.Id}" // Default URL, can be overridden by controllers
+        });
     }
 
     private void ValidateFile(IFormFile file)

@@ -9,29 +9,29 @@ namespace WebApi.Controllers;
 public class PostsController : ControllerBase
 {
     private readonly IPostService _postService;
+    private readonly IImageService _imageService;
     private readonly ILogger<PostsController> _logger;
 
-    public PostsController(IPostService postService, ILogger<PostsController> logger)
+    public PostsController(IPostService postService, IImageService imageService, ILogger<PostsController> logger)
     {
         _postService = postService;
+        _imageService = imageService;
         _logger = logger;
     }
 
     [HttpGet]
     public async Task<ActionResult<PaginatedResult<PostSummaryDto>>> GetPublishedPosts(
         [FromQuery] int page = 1, 
-        [FromQuery] int pageSize = 10,
-        [FromQuery] string? search = null)
+        [FromQuery] int pageSize = 10)
     {
-        _logger.LogInformation("Fetching published posts - Page: {Page}, PageSize: {PageSize}, Search: {Search}", 
-            page, pageSize, search);
+        _logger.LogInformation("Fetching published posts - Page: {Page}, PageSize: {PageSize}", page, pageSize);
 
-        var result = await _postService.GetPublishedPostsAsync(page, pageSize, search);
+        var result = await _postService.GetPublishedPostsAsync(page, pageSize);
         return Ok(result);
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<PostDto>> GetPublishedPost(int id)
+    public async Task<ActionResult<PostPublicDto>> GetPublishedPost(int id)
     {
         _logger.LogInformation("Fetching published post with ID: {PostId}", id);
         
@@ -48,43 +48,41 @@ public class PostsController : ControllerBase
         return Ok(posts);
     }
 
-    [HttpGet("search")]
-    public async Task<ActionResult<PaginatedResult<PostSummaryDto>>> SearchPosts(
-        [FromQuery] string query,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 10)
+    [HttpGet("images/{id}")]
+    public async Task<IActionResult> GetImage(int id)
     {
-        if (string.IsNullOrWhiteSpace(query))
+        _logger.LogInformation("Fetching image with ID: {ImageId}", id);
+        
+        var imageData = await _imageService.GetImageAsync(id);
+        
+        if (imageData == null)
         {
-            throw new ArgumentException("Search query is required");
+            return NotFound();
         }
 
-        _logger.LogInformation("Searching posts with query: {Query}, Page: {Page}, PageSize: {PageSize}", 
-            query, page, pageSize);
-        
-        var result = await _postService.SearchPostsAsync(query, page, pageSize);
-        return Ok(result);
+        return File(imageData.Value.Data, imageData.Value.ContentType, imageData.Value.FileName);
     }
 
-    [HttpGet("by-author/{authorId}")]
-    public async Task<ActionResult<PaginatedResult<PostSummaryDto>>> GetPostsByAuthor(
-        int authorId,
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 10)
+    [HttpGet("{postId}/images")]
+    public async Task<ActionResult<IEnumerable<ImageDetailsDto>>> GetImagesByPost(int postId)
     {
-        _logger.LogInformation("Fetching posts by author ID: {AuthorId}, Page: {Page}, PageSize: {PageSize}", 
-            authorId, page, pageSize);
+        _logger.LogInformation("Fetching images for post: {PostId}", postId);
         
-        var result = await _postService.GetPostsByAuthorAsync(authorId, page, pageSize);
+        var images = await _imageService.GetImageDetailsByPostAsync(postId);
+        
+        // Update URLs to use posts endpoint
+        var result = images.Select(i => new ImageDetailsDto
+        {
+            Id = i.Id,
+            PostId = i.PostId,
+            FileName = i.FileName,
+            ContentType = i.ContentType,
+            Size = i.Size,
+            AltText = i.AltText,
+            CreatedAt = i.CreatedAt,
+            Url = $"/api/posts/images/{i.Id}"
+        });
+        
         return Ok(result);
-    }
-
-    [HttpGet("stats")]
-    public async Task<ActionResult<object>> GetPostStats()
-    {
-        _logger.LogInformation("Fetching post statistics");
-        
-        var stats = await _postService.GetPostStatsAsync();
-        return Ok(stats);
     }
 }
