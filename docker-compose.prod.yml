@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  backend:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 256M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+
+  # Remove pgAdmin from production
+  pgadmin:
+    profiles:
+      - development
