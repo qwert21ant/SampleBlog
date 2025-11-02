@@ -118,7 +118,7 @@
     "saving": "Saving...",
     "cancel": "Cancel",
     "loadingPostData": "Loading post data...",
-    "fillRequiredFields": "Please fill in all required fields (title and subtitle)",
+    "fillAllRequiredFields": "Please fill in all required fields (title, subtitle, and content)",
     "fillTitleSubtitle": "Please fill in at least the title and subtitle to save as draft",
     "postCreated": "Post has been created and published successfully!",
     "postUpdated": "Post has been updated and published successfully!",
