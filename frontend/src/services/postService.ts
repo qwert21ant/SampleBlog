@@ -4,7 +4,6 @@ import type {
   PostPublicDto,
   PaginatedResult,
   PublicPost,
-  SearchParams,
   PostsParams,
   ImageDetailsDto
 } from "@/types";

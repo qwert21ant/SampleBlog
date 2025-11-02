@@ -24,11 +24,6 @@ export interface PaginationParams {
   pageSize?: number
 }
 
-export interface SearchParams extends PaginationParams {
-  query?: string
-  search?: string
-}
-
 export interface PostsParams extends PaginationParams {
   category?: string
   author?: string

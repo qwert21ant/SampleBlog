@@ -47,7 +47,6 @@ export type {
   ApiResponse,
   RequestOptions,
   PaginationParams,
-  SearchParams,
   PostsParams
 } from "./api";
 

@@ -156,7 +156,7 @@
                     <span class="font-medium">Click to upload</span><br>
                     or drag and drop
                   </p>
-                  <p class="text-xs text-gray-400 mt-1">PNG, JPG, GIF up to 10MB</p>
+                  <p class="text-xs text-gray-400 mt-1">PNG, JPG, GIF up to 5MB</p>
                 </div>
               </div>
             </div>
@@ -413,6 +413,21 @@ const removeImage = async (index: number) => {
   images.value.splice(index, 1);
 };
 
+const saveNewImages = async (postId: number) => {
+  const newImages = images.value.filter(img => !img.isExisting);
+    if (newImages.length > 0) {
+      for (const imageData of newImages) {
+        try {
+          await adminService.uploadImageForPost(postId, imageData.file, `Image ${images.value.indexOf(imageData) + 1}`);
+        } catch (imageError) {
+          console.error("Failed to upload image:", imageError);
+          // Continue with other images but show warning
+          notificationService.warning("Image Upload", "Some images failed to upload but post was saved.");
+        }
+      }
+    }
+};
+
 const handleSubmit = async () => {
   if (!form.value.title.trim() || !form.value.subtitle.trim()) {
     saveError.value = "Please fill in all required fields (title and subtitle)";
@@ -449,19 +464,7 @@ const handleSubmit = async () => {
       postId = newPost.id;
     }
 
-    // Upload any new images (skip existing ones)
-    const newImages = images.value.filter(img => !img.isExisting);
-    if (newImages.length > 0) {
-      for (const imageData of newImages) {
-        try {
-          await adminService.uploadImageForPost(postId, imageData.file, `Image ${images.value.indexOf(imageData) + 1}`);
-        } catch (imageError) {
-          console.error("Failed to upload image:", imageError);
-          // Continue with other images but show warning
-          notificationService.warning("Image Upload", "Some images failed to upload but post was saved.");
-        }
-      }
-    }
+    await saveNewImages(postId);
     
     // Show success message and navigate back
     const action = isEditing.value ? "updated" : "created";
@@ -513,18 +516,7 @@ const saveDraft = async () => {
       const newPost = await adminService.createPost(createData);
       postId = newPost.id;
       
-      // If creating new draft, navigate to edit mode after uploading images
-      const newImages = images.value.filter(img => !img.isExisting);
-      if (newImages.length > 0) {
-        try {
-          for (const imageData of newImages) {
-            await adminService.uploadImageForPost(postId, imageData.file, `Image ${images.value.indexOf(imageData) + 1}`);
-          }
-        } catch (imageError) {
-          console.error("Failed to upload images:", imageError);
-          notificationService.warning("Image Upload", "Draft saved but some images failed to upload.");
-        }
-      }
+      await saveNewImages(postId);
 
       // Navigate to edit mode for the new draft
       router.push(`/admin/posts/edit/${postId}`);

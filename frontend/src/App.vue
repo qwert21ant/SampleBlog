@@ -22,6 +22,14 @@
                 Home
               </router-link>
               <router-link
+                to="/posts"
+                class="flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-slate-700 hover:text-white"
+                :class="{ 'bg-slate-900 text-white': $route.path === '/posts' }"
+              >
+                <NewspaperIcon class="h-4 w-4 mr-1" />
+                All Posts
+              </router-link>
+              <router-link
                 to="/about"
                 class="flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-slate-700 hover:text-white"
                 :class="{ 'bg-slate-900 text-white': $route.path === '/about' }"

@@ -17,7 +17,7 @@ public static class MappingExtensions
 
     public static PostDto ToDto(this Post post)
     {
-        var firstImage = post.Images?.FirstOrDefault();
+        var firstImage = post.Images?.OrderBy(i => i.UpdatedAt).FirstOrDefault();
         
         return new PostDto
         {
@@ -26,7 +26,7 @@ public static class MappingExtensions
             Subtitle = post.Subtitle,
             Text = post.Text,
             MainImageUrl = firstImage != null 
-                ? $"/api/images/{firstImage.Id}" 
+                ? $"/api/posts/images/{firstImage.Id}" 
                 : null,
             IsPublished = post.IsPublished,
             CreatedAt = post.CreatedAt,
@@ -55,7 +55,7 @@ public static class MappingExtensions
 
     public static PostSummaryDto ToSummaryDto(this Post post)
     {
-        var firstImage = post.Images?.FirstOrDefault();
+        var firstImage = post.Images?.OrderBy(i => i.UpdatedAt).FirstOrDefault();
         
         return new PostSummaryDto
         {

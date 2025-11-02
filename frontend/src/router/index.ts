@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from "vue-router";
 import Home from "@/views/Home.vue";
 import About from "@/views/About.vue";
 import PostDetail from "@/views/PostDetail.vue";
+import PostGrid from "@/views/PostGrid.vue";
 import Admin from "@/views/Admin.vue";
 import PostEditor from "@/views/PostEditor.vue";
 import { useAuth } from "@/composables/useAuth";
@@ -11,6 +12,11 @@ const routes = [
     path: "/",
     name: "Home",
     component: Home
+  },
+  {
+    path: "/posts",
+    name: "PostGrid",
+    component: PostGrid
   },
   {
     path: "/posts/:id",

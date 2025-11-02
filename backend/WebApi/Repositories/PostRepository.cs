@@ -16,7 +16,10 @@ public class PostRepository : IPostRepository
 
     public async Task<Post?> GetByIdAsync(int id, bool includeUnpublished = false)
     {
-        var query = _context.Posts.Include(p => p.Author).AsQueryable();
+        var query = _context.Posts
+            .Include(p => p.Author)
+            .Include(p => p.Images)
+            .AsQueryable();
         
         if (!includeUnpublished)
         {
@@ -28,7 +31,10 @@ public class PostRepository : IPostRepository
 
     public async Task<IEnumerable<Post>> GetAllAsync(int page, int pageSize, bool? isPublished = null)
     {
-        var query = _context.Posts.Include(p => p.Author).AsQueryable();
+        var query = _context.Posts
+            .Include(p => p.Author)
+            .Include(p => p.Images)
+            .AsQueryable();
         
         if (isPublished.HasValue)
         {
@@ -58,6 +64,7 @@ public class PostRepository : IPostRepository
     {
         return await _context.Posts
             .Include(p => p.Author)
+            .Include(p => p.Images)
             .Where(p => p.IsPublished)
             .OrderByDescending(p => p.PublishedAt ?? p.CreatedAt)
             .Take(count)
@@ -68,6 +75,7 @@ public class PostRepository : IPostRepository
     {
         var query = _context.Posts
             .Include(p => p.Author)
+            .Include(p => p.Images)
             .Where(p => p.AuthorId == authorId);
 
         if (isPublished.HasValue)
