@@ -8,7 +8,8 @@ export type {
   CreatePostDto,
   UpdatePostDto,
   PaginatedResult,
-  PostStatsDto
+  PostStatsDto,
+  ImageDetailsDto
 } from "./dtos";
 
 // Authentication DTOs

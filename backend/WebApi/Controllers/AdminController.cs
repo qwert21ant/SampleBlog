@@ -98,7 +98,7 @@ public class AdminController : ControllerBase
     }
 
     [HttpPost("posts/{postId}/images")]
-    public async Task<ActionResult<object>> UploadImageForPost(int postId, [FromForm] ImageUploadRequest request)
+    public async Task<ActionResult<ImageDetailsDto>> UploadImageForPost(int postId, [FromForm] ImageUploadRequest request)
     {
         _logger.LogInformation("Uploading image: {FileName} for post: {PostId}", request.Image?.FileName, postId);
         
@@ -124,7 +124,7 @@ public class AdminController : ControllerBase
 
         var image = await _imageService.UploadImageAsync(postId, request.Image, request.AltText);
         
-        return CreatedAtAction(nameof(GetImage), new { id = image.Id }, new ImageDetailsDto
+        return Ok(new ImageDetailsDto
         {
             Id = image.Id,
             PostId = image.PostId,

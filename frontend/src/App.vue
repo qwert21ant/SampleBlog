@@ -109,13 +109,15 @@
       </div>
     </footer>
 
-    <!-- Auth Dialog -->
+    <!-- Global Components -->
     <AuthDialog
       :is-open="authDialog.isOpen"
       :initial-mode="authDialog.mode"
       @close="closeAuthDialog"
       @success="handleAuthSuccess"
     />
+    
+    <NotificationContainer />
   </div>
 </template>
 
@@ -131,6 +133,7 @@ import {
   ArrowRightOnRectangleIcon
 } from "@heroicons/vue/24/outline";
 import AuthDialog from "@/components/AuthDialog.vue";
+import NotificationContainer from "@/components/NotificationContainer.vue";
 import { useAuth } from "@/composables/useAuth";
 
 // Composables

@@ -5,7 +5,8 @@ import type {
   PostStatsDto,
   CreatePostDto,
   UpdatePostDto,
-  PaginatedResult
+  PaginatedResult,
+  ImageDetailsDto
 } from "@/types";
 
 // Admin service for handling administrative operations
@@ -130,14 +131,16 @@ class AdminService extends BaseApiService {
     }
   }
 
-  // Upload image for posts
-  async uploadImage(file: File): Promise<{ url: string; id?: string }> {
+  // Upload image for a specific post
+  async uploadImageForPost(postId: number, file: File, altText?: string): Promise<ImageDetailsDto> {
     try {
       const formData = new FormData();
       formData.append("image", file);
+      if (altText) {
+        formData.append("altText", altText);
+      }
 
-      // Use the axios client directly for file upload
-      const response = await this.getClient().post<{ url: string; id?: string }>("/admin/upload/image", formData, {
+      const response = await this.getClient().post<ImageDetailsDto>(`/admin/posts/${postId}/images`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -146,6 +149,46 @@ class AdminService extends BaseApiService {
       return response.data;
     } catch (error) {
       console.error("Failed to upload image:", error);
+      throw error;
+    }
+  }
+
+  // Get images for a specific post
+  async getImagesByPost(postId: number): Promise<ImageDetailsDto[]> {
+    try {
+      return await this.get<ImageDetailsDto[]>(`/admin/posts/${postId}/images`);
+    } catch (error) {
+      console.error(`Failed to get images for post ${postId}:`, error);
+      throw error;
+    }
+  }
+
+  // Delete an image
+  async deleteImage(imageId: number): Promise<void> {
+    try {
+      await this.delete<void>(`/admin/images/${imageId}`);
+    } catch (error) {
+      console.error(`Failed to delete image ${imageId}:`, error);
+      throw error;
+    }
+  }
+
+  // Get image URL for admin context
+  getImageUrl(imageId: number): string {
+    const baseURL = this.client.defaults.baseURL || '/api';
+    return `${baseURL}/admin/images/${imageId}`;
+  }
+
+  // Fetch image blob with authentication (for displaying in authenticated contexts)
+  async fetchImageBlob(imageId: number): Promise<Blob> {
+    try {
+      const response = await this.getClient().get(`/admin/images/${imageId}`, {
+        responseType: 'blob'
+      });
+      
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to fetch image ${imageId}:`, error);
       throw error;
     }
   }

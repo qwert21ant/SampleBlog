@@ -280,7 +280,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import {
   ArrowLeftIcon,
@@ -289,13 +289,15 @@ import {
   DocumentIcon,
   CheckIcon
 } from "@heroicons/vue/24/outline";
-import { adminService } from "@/services";
+import { adminService, notificationService } from "@/services";
 import type { AdminPost, CreatePostDto, UpdatePostDto } from "@/types";
 
 // Types
 interface ImageFile {
   file: File;
   preview: string;
+  isExisting?: boolean;
+  imageId?: number;
 }
 
 interface PostForm {
@@ -387,7 +389,27 @@ const addImages = (files: File[]) => {
   });
 };
 
-const removeImage = (index: number) => {
+const removeImage = async (index: number) => {
+  const imageToRemove = images.value[index];
+  
+  // If it's an existing image (has imageId), delete it from server
+  if (imageToRemove.isExisting && imageToRemove.imageId) {
+    try {
+      await adminService.deleteImage(imageToRemove.imageId);
+      notificationService.success("Image Deleted", "Image has been removed from the post.");
+    } catch (error) {
+      console.error("Failed to delete image:", error);
+      notificationService.error("Delete Failed", "Failed to delete image from server.");
+      return; // Don't remove from UI if server deletion failed
+    }
+  }
+  
+  // Clean up blob URL if it's an existing image
+  if (imageToRemove.isExisting && imageToRemove.preview.startsWith('blob:')) {
+    URL.revokeObjectURL(imageToRemove.preview);
+  }
+  
+  // Remove from UI
   images.value.splice(index, 1);
 };
 
@@ -401,22 +423,19 @@ const handleSubmit = async () => {
   saveError.value = null;
 
   try {
+    let postId: number;
+
     if (isEditing.value) {
       // Update existing post (keep current publish state or publish if saving)
-      const postId = Number(route.params.id);
+      postId = Number(route.params.id);
       const updateData: UpdatePostDto = {
         title: form.value.title.trim(),
         subtitle: form.value.subtitle.trim(),
         text: form.value.text.trim(),
         isPublished: true // Publish when using main submit
-        // Note: Image logic will be implemented later
       };
 
       await adminService.updatePost(postId, updateData);
-      
-      // Show success message and navigate back
-      alert("Post updated and published successfully!");
-      router.push("/admin");
     } else {
       // Create new post as published
       const createData: CreatePostDto = {
@@ -424,18 +443,35 @@ const handleSubmit = async () => {
         subtitle: form.value.subtitle.trim(),
         text: form.value.text.trim(),
         isPublished: true // Publish when using main submit
-        // Note: Image logic will be implemented later
       };
 
       const newPost = await adminService.createPost(createData);
-      
-      // Show success message and navigate back
-      alert("Post created and published successfully!");
-      router.push("/admin");
+      postId = newPost.id;
     }
+
+    // Upload any new images (skip existing ones)
+    const newImages = images.value.filter(img => !img.isExisting);
+    if (newImages.length > 0) {
+      for (const imageData of newImages) {
+        try {
+          await adminService.uploadImageForPost(postId, imageData.file, `Image ${images.value.indexOf(imageData) + 1}`);
+        } catch (imageError) {
+          console.error("Failed to upload image:", imageError);
+          // Continue with other images but show warning
+          notificationService.warning("Image Upload", "Some images failed to upload but post was saved.");
+        }
+      }
+    }
+    
+    // Show success message and navigate back
+    const action = isEditing.value ? "updated" : "created";
+    notificationService.success("Post Saved", `Post has been ${action} and published successfully!`);
+    router.push("/admin");
   } catch (error: any) {
     console.error("Failed to save post:", error);
-    saveError.value = error.message || "Failed to save post. Please try again.";
+    const errorMessage = error.message || "Failed to save post. Please try again.";
+    saveError.value = errorMessage;
+    notificationService.error("Save Failed", errorMessage);
   } finally {
     isSaving.value = false;
   }
@@ -451,9 +487,11 @@ const saveDraft = async () => {
   saveError.value = null;
 
   try {
+    let postId: number;
+
     if (isEditing.value) {
       // Update existing post as draft
-      const postId = Number(route.params.id);
+      postId = Number(route.params.id);
       const updateData: UpdatePostDto = {
         title: form.value.title.trim(),
         subtitle: form.value.subtitle.trim(),
@@ -473,16 +511,44 @@ const saveDraft = async () => {
       };
 
       const newPost = await adminService.createPost(createData);
+      postId = newPost.id;
       
+      // If creating new draft, navigate to edit mode after uploading images
+      const newImages = images.value.filter(img => !img.isExisting);
+      if (newImages.length > 0) {
+        try {
+          for (const imageData of newImages) {
+            await adminService.uploadImageForPost(postId, imageData.file, `Image ${images.value.indexOf(imageData) + 1}`);
+          }
+        } catch (imageError) {
+          console.error("Failed to upload images:", imageError);
+          notificationService.warning("Image Upload", "Draft saved but some images failed to upload.");
+        }
+      }
+
       // Navigate to edit mode for the new draft
-      router.push(`/admin/posts/edit/${newPost.id}`);
+      router.push(`/admin/posts/edit/${postId}`);
       return;
     }
 
-    alert("Saved as draft successfully!");
+    // Upload any new images for existing draft
+    if (images.value.length > 0) {
+      for (const imageData of images.value) {
+        try {
+          await adminService.uploadImageForPost(postId, imageData.file, `Image ${images.value.indexOf(imageData) + 1}`);
+        } catch (imageError) {
+          console.error("Failed to upload image:", imageError);
+          notificationService.warning("Image Upload", "Draft saved but some images failed to upload.");
+        }
+      }
+    }
+
+    notificationService.success("Draft Saved", "Post has been saved as draft successfully!");
   } catch (error: any) {
     console.error("Failed to save draft:", error);
-    saveError.value = error.message || "Failed to save draft. Please try again.";
+    const errorMessage = error.message || "Failed to save draft. Please try again.";
+    saveError.value = errorMessage;
+    notificationService.error("Save Draft Failed", errorMessage);
   } finally {
     isSaving.value = false;
   }
@@ -510,6 +576,33 @@ onMounted(async () => {
         text: post.text || "",
         isPublished: post.isPublished || false
       };
+
+      // Load existing images
+      try {
+        const existingImages = await adminService.getImagesByPost(postId);
+        
+        // Convert server images to preview format for display
+        // We need to fetch the actual image data with auth headers to create blob URLs
+        for (const img of existingImages) {
+          try {
+            const blob = await adminService.fetchImageBlob(img.id);
+            const blobUrl = URL.createObjectURL(blob);
+            
+            images.value.push({
+              file: new File([], img.fileName), // Placeholder file - for existing images
+              preview: blobUrl,
+              isExisting: true,
+              imageId: img.id
+            });
+          } catch (fetchError) {
+            console.error(`Failed to fetch image ${img.id}:`, fetchError);
+            // Skip this image but continue with others
+          }
+        }
+      } catch (imageError) {
+        console.error("Failed to load images:", imageError);
+        // Don't show error for images, just log it
+      }
       
       console.log("Loaded post for editing:", post);
     } catch (error: any) {
@@ -519,5 +612,14 @@ onMounted(async () => {
       isLoading.value = false;
     }
   }
+});
+
+// Cleanup blob URLs on component unmount to prevent memory leaks
+onUnmounted(() => {
+  images.value.forEach(img => {
+    if (img.isExisting && img.preview.startsWith('blob:')) {
+      URL.revokeObjectURL(img.preview);
+    }
+  });
 });
 </script>

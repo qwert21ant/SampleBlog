@@ -98,6 +98,19 @@
         </div>
       </div>
     </div>
+
+    <!-- Delete Confirmation Dialog -->
+    <ConfirmDialog
+      :is-open="showDeleteConfirm"
+      :title="'Delete Post'"
+      :message="`Are you sure you want to delete &quot;${postToDelete?.title}&quot;? This action cannot be undone.`"
+      :confirm-text="'Delete'"
+      :cancel-text="'Cancel'"
+      :loading-text="'Deleting...'"
+      :loading="isDeletingPost"
+      @confirm="confirmDeletePost"
+      @cancel="cancelDeletePost"
+    />
   </div>
 </template>
 
@@ -111,8 +124,9 @@ import {
   PlusIcon
 } from "@heroicons/vue/24/outline";
 import AdminPostCard from "@/components/AdminPostCard.vue";
+import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import { useAuth } from "@/composables/useAuth";
-import { adminService } from "@/services";
+import { adminService, notificationService } from "@/services";
 import type { PostStatsDto, AdminPost } from "@/types";
 
 // Composables
@@ -126,10 +140,13 @@ const stats = ref<Partial<PostStatsDto>>({});
 const posts = ref<AdminPost[]>([]);
 const error = ref<string | null>(null);
 
+// Confirmation dialog state
+const showDeleteConfirm = ref(false);
+const postToDelete = ref<AdminPost | null>(null);
+const isDeletingPost = ref(false);
+
 // Filters for posts
 const filters = ref({
-  search: "",
-  category: "",
   status: "all" as "all" | "published" | "draft"
 });
 
@@ -152,6 +169,7 @@ const loadStats = async () => {
   } catch (err) {
     console.error("Failed to load stats:", err);
     error.value = "Failed to load statistics. Using fallback data.";
+    notificationService.error("Stats Failed", "Failed to load statistics. Please try refreshing the page.");
   } finally {
     isLoadingStats.value = false;
   }
@@ -179,44 +197,12 @@ const loadPosts = async (refreshing = false) => {
     
     if (refreshing) {
       // Show success message for manual refresh
-      console.log("Posts refreshed successfully");
+      notificationService.info("Data Refreshed", "Posts and statistics have been updated.");
     }
   } catch (err) {
     console.error("Failed to load posts:", err);
     error.value = "Failed to load posts. Using fallback data.";
-    
-    // Use mock data as fallback
-    posts.value = [
-      {
-        id: 1,
-        title: "Welcome to Our Blog",
-        subtitle: "Welcome to our new blog! We're excited to share our thoughts...",
-        text: "This is the content of our first blog post...",
-        author: {
-          id: 1,
-          email: user.value?.email || "admin@example.com",
-          username: user.value?.username || "Admin"
-        },
-        isPublished: true,
-        publishedAt: "2025-11-01T10:00:00Z",
-        createdAt: "2025-11-01T09:00:00Z",
-        updatedAt: "2025-11-01T10:00:00Z"
-      },
-      {
-        id: 2,
-        title: "Draft Post",
-        subtitle: "This post is still being worked on...",
-        text: "This is a draft post that hasn't been published yet...",
-        author: {
-          id: 1,
-          email: user.value?.email || "admin@example.com",
-          username: user.value?.username || "Admin"
-        },
-        isPublished: false,
-        createdAt: "2025-11-01T11:00:00Z",
-        updatedAt: "2025-11-01T11:30:00Z"
-      }
-    ];
+    notificationService.error("Load Failed", "Failed to load posts. Please try refreshing the page.");
   } finally {
     isLoadingPosts.value = false;
   }
@@ -250,11 +236,11 @@ const publishPost = async (post: AdminPost) => {
       posts.value[index] = updatedPost;
     }
     
-    alert(`Post "${post.title}" published successfully!`);
+    notificationService.success("Post Published", `"${post.title}" has been published successfully!`);
     await loadStats(); // Refresh stats
   } catch (error) {
     console.error("Failed to publish post:", error);
-    alert("Failed to publish post. Please try again.");
+    notificationService.error("Publish Failed", "Failed to publish post. Please try again.");
   }
 };
 
@@ -269,18 +255,24 @@ const unpublishPost = async (post: AdminPost) => {
       posts.value[index] = updatedPost;
     }
     
-    alert(`Post "${post.title}" unpublished successfully!`);
+    notificationService.success("Post Unpublished", `"${post.title}" has been moved to drafts successfully!`);
     await loadStats(); // Refresh stats
   } catch (error) {
     console.error("Failed to unpublish post:", error);
-    alert("Failed to unpublish post. Please try again.");
+    notificationService.error("Unpublish Failed", "Failed to unpublish post. Please try again.");
   }
 };
 
-const deletePost = async (post: AdminPost) => {
-  if (!confirm(`Are you sure you want to delete "${post.title}"? This action cannot be undone.`)) {
-    return;
-  }
+const deletePost = (post: AdminPost) => {
+  postToDelete.value = post;
+  showDeleteConfirm.value = true;
+};
+
+const confirmDeletePost = async () => {
+  if (!postToDelete.value) return;
+  
+  const post = postToDelete.value;
+  isDeletingPost.value = true;
   
   try {
     console.log("Deleting post:", post.id);
@@ -292,12 +284,23 @@ const deletePost = async (post: AdminPost) => {
       posts.value.splice(index, 1);
     }
     
-    alert(`Post "${post.title}" deleted successfully!`);
+    // Close dialog and show success
+    showDeleteConfirm.value = false;
+    postToDelete.value = null;
+    notificationService.success("Post Deleted", `"${post.title}" has been permanently deleted.`);
     await loadStats(); // Refresh stats
   } catch (error) {
     console.error("Failed to delete post:", error);
-    alert("Failed to delete post. Please try again.");
+    notificationService.error("Delete Failed", "Failed to delete post. Please try again.");
+  } finally {
+    isDeletingPost.value = false;
   }
+};
+
+const cancelDeletePost = () => {
+  showDeleteConfirm.value = false;
+  postToDelete.value = null;
+  isDeletingPost.value = false;
 };
 
 // Lifecycle

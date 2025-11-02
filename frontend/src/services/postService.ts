@@ -5,7 +5,8 @@ import type {
   PaginatedResult,
   PublicPost,
   SearchParams,
-  PostsParams
+  PostsParams,
+  ImageDetailsDto
 } from "@/types";
 
 // Post service for handling blog posts API calls
@@ -75,6 +76,22 @@ class PostService extends BaseApiService {
       console.error(`Failed to fetch post ${id}:`, error);
       throw error;
     }
+  }
+
+  // Get images for a specific post (public)
+  async getImagesByPost(postId: number): Promise<ImageDetailsDto[]> {
+    try {
+      return await this.get<ImageDetailsDto[]>(`/posts/${postId}/images`);
+    } catch (error) {
+      console.error(`Failed to get images for post ${postId}:`, error);
+      throw error;
+    }
+  }
+
+  // Get public image URL
+  getImageUrl(imageId: number): string {
+    const baseURL = this.client.defaults.baseURL || '/api';
+    return `${baseURL}/posts/images/${imageId}`;
   }
 }
 

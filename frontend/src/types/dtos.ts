@@ -65,3 +65,14 @@ export interface PostStatsDto {
   publishedPosts: number
   draftPosts: number
 }
+
+export interface ImageDetailsDto {
+  id: number
+  postId: number
+  fileName: string
+  contentType: string
+  size: number
+  altText?: string
+  createdAt: string
+  url: string
+}
