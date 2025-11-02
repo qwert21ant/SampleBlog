@@ -19,7 +19,7 @@
                 :class="{ 'bg-slate-900 text-white': $route.path === '/' }"
               >
                 <HomeIcon class="h-4 w-4 mr-1" />
-                Home
+                {{ $t('nav.home') }}
               </router-link>
               <router-link
                 to="/posts"
@@ -27,17 +27,12 @@
                 :class="{ 'bg-slate-900 text-white': $route.path === '/posts' }"
               >
                 <NewspaperIcon class="h-4 w-4 mr-1" />
-                All Posts
-              </router-link>
-              <router-link
-                to="/about"
-                class="flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-slate-700 hover:text-white"
-                :class="{ 'bg-slate-900 text-white': $route.path === '/about' }"
-              >
-                <InformationCircleIcon class="h-4 w-4 mr-1" />
-                About
+                {{ $t('nav.allPosts') }}
               </router-link>
             </div>
+
+            <!-- Language Switcher -->
+            <LanguageSwitcher />
 
             <!-- Authentication Section -->
             <div
@@ -48,13 +43,13 @@
                 class="text-sm font-medium text-slate-300 hover:text-white transition-colors"
                 @click="openAuthDialog('login')"
               >
-                Sign In
+                {{ $t('nav.signIn') }}
               </button>
               <button
                 class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                 @click="openAuthDialog('register')"
               >
-                Sign Up
+                {{ $t('nav.signUp') }}
               </button>
             </div>
 
@@ -88,7 +83,7 @@
                   @click="closeUserMenu"
                 >
                   <CogIcon class="h-4 w-4 mr-2" />
-                  Admin Panel
+                  {{ $t('nav.admin') }}
                 </router-link>
                 
                 <button
@@ -96,7 +91,7 @@
                   @click="handleLogout"
                 >
                   <ArrowRightOnRectangleIcon class="h-4 w-4 mr-2" />
-                  Sign Out
+                  {{ $t('auth.logout') }}
                 </button>
               </div>
             </div>
@@ -130,11 +125,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, onMounted } from "vue";
 import { 
   NewspaperIcon, 
-  HomeIcon, 
-  InformationCircleIcon,
+  HomeIcon,
   UserCircleIcon,
   ChevronDownIcon,
   CogIcon,
@@ -142,6 +136,7 @@ import {
 } from "@heroicons/vue/24/outline";
 import AuthDialog from "@/components/AuthDialog.vue";
 import NotificationContainer from "@/components/NotificationContainer.vue";
+import LanguageSwitcher from "@/components/LanguageSwitcher.vue";
 import { useAuth } from "@/composables/useAuth";
 
 // Composables

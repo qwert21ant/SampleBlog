@@ -89,7 +89,7 @@ class PostService extends BaseApiService {
 
   // Get public image URL
   getImageUrl(imageId: number): string {
-    const baseURL = this.client.defaults.baseURL || '/api';
+    const baseURL = this.client.defaults.baseURL || "/api";
     return `${baseURL}/posts/images/${imageId}`;
   }
 }

@@ -7,11 +7,14 @@ export default defineConfig({
     target: "esnext",
     sourcemap: true,
   },
-  plugins: [vue()],
+  plugins: [
+    vue()
+  ],
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
+    "vue-i18n": "vue-i18n/dist/vue-i18n.runtime.esm-bundler.js"
   },
   server: {
     port: 3000,

@@ -18,8 +18,6 @@
       >
         <PhotoIcon class="h-16 w-16 text-gray-400" />
       </div>
-      
-
     </div>
 
     <!-- Post Content -->
@@ -46,13 +44,13 @@
         <div class="flex items-center">
           <UserCircleIcon class="h-8 w-8 text-gray-400 mr-2" />
           <div>
-            <p class="text-sm font-medium text-gray-900">{{ post.author || 'Anonymous' }}</p>
+            <p class="text-sm font-medium text-gray-900">{{ post.author || $t('posts.anonymous') }}</p>
           </div>
         </div>
 
         <!-- Read More Link -->
         <div class="flex items-center text-blue-600 font-medium text-sm group-hover:text-blue-700 transition-colors">
-          <span>Read more</span>
+          <span>{{ $t('posts.readMore') }}</span>
           <ArrowRightIcon class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
         </div>
       </div>
@@ -62,6 +60,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 import { 
   PhotoIcon, 
   CalendarIcon, 
@@ -76,6 +75,7 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+const { t, locale } = useI18n();
 
 // Emits
 defineEmits<{
@@ -85,13 +85,13 @@ defineEmits<{
 // Computed
 const formattedDate = computed(() => {
   try {
-    return new Date(props.post.publishedAt).toLocaleDateString("en-US", {
+    return new Date(props.post.publishedAt).toLocaleDateString(locale.value === "ru" ? "ru-RU" : "en-US", {
       year: "numeric",
       month: "long",
       day: "numeric"
     });
   } catch {
-    return "Invalid date";
+    return t("common.invalidDate");
   }
 });
 

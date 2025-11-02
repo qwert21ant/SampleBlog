@@ -12,7 +12,7 @@
               ? 'bg-green-100 text-green-800' 
               : 'bg-yellow-100 text-yellow-800'"
           >
-            {{ post.isPublished ? 'Published' : 'Draft' }}
+            {{ post.isPublished ? $t('admin.published') : $t('admin.draft') }}
           </span>
         </div>
         
@@ -36,7 +36,7 @@
           @click="$emit('edit', post)"
         >
           <PencilIcon class="h-4 w-4 mr-1" />
-          Edit
+          {{ $t('admin.editPost') }}
         </button>
         
         <button
@@ -45,7 +45,7 @@
           @click="$emit('unpublish', post)"
         >
           <EyeSlashIcon class="h-4 w-4 mr-1" />
-          Unpublish
+          {{ $t('admin.unpublishPost') }}
         </button>
         
         <button
@@ -54,7 +54,7 @@
           @click="$emit('publish', post)"
         >
           <EyeIcon class="h-4 w-4 mr-1" />
-          Publish
+          {{ $t('admin.publishPost') }}
         </button>
         
         <button
@@ -62,7 +62,7 @@
           @click="$emit('delete', post)"
         >
           <TrashIcon class="h-4 w-4 mr-1" />
-          Delete
+          {{ $t('admin.deletePost') }}
         </button>
       </div>
     </div>
@@ -70,6 +70,7 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
 import {
   EyeIcon,
   EyeSlashIcon,
@@ -84,6 +85,7 @@ interface Props {
 }
 
 defineProps<Props>();
+const { locale } = useI18n();
 
 // Emits
 defineEmits<{
@@ -95,7 +97,7 @@ defineEmits<{
 
 // Utility functions
 const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString("en-US", {
+  return new Date(dateString).toLocaleDateString(locale.value === "ru" ? "ru-RU" : "en-US", {
     year: "numeric",
     month: "short",
     day: "numeric",

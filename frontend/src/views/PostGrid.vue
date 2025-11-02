@@ -5,14 +5,12 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div class="text-center">
           <h1 class="text-4xl font-bold text-gray-900 mb-4">
-            All Blog Posts
+            {{ $t('posts.allPosts') }}
           </h1>
           <p class="text-lg text-gray-600 max-w-2xl mx-auto">
-            Explore our complete collection of articles, tutorials, and insights
+            {{ $t('posts.exploreCollection') }}
           </p>
         </div>
-
-
       </div>
     </div>
 
@@ -24,7 +22,7 @@
         class="flex justify-center items-center py-16"
       >
         <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
-        <span class="ml-3 text-lg text-gray-600">Loading posts...</span>
+        <span class="ml-3 text-lg text-gray-600">{{ $t('posts.loading') }}</span>
       </div>
 
       <!-- Error State -->
@@ -34,13 +32,13 @@
       >
         <div class="bg-red-50 border border-red-200 rounded-lg p-6 text-center max-w-md mx-auto">
           <ExclamationTriangleIcon class="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h3 class="text-lg font-semibold text-red-800 mb-2">Failed to load posts</h3>
+          <h3 class="text-lg font-semibold text-red-800 mb-2">{{ $t('posts.failedToLoad') }}</h3>
           <p class="text-red-600 mb-4">{{ error }}</p>
           <button 
             class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
             @click="() => fetchPosts()"
           >
-            Try Again
+            {{ $t('posts.tryAgain') }}
           </button>
         </div>
       </div>
@@ -52,10 +50,10 @@
       >
         <DocumentTextIcon class="h-16 w-16 text-gray-400 mx-auto mb-4" />
         <h3 class="text-lg font-medium text-gray-900 mb-2">
-          No posts available
+          {{ $t('posts.noPosts') }}
         </h3>
         <p class="text-gray-600">
-          Check back later for new content
+          {{ $t('posts.checkBackLater') }}
         </p>
       </div>
 
@@ -64,12 +62,12 @@
         <!-- Results Info -->
         <div class="flex justify-between items-center mb-6">
           <p class="text-gray-600">
-            Showing {{ posts.length }} of {{ totalCount }} post{{ totalCount !== 1 ? 's' : '' }}
+            {{ $t('posts.showingResults', { count: posts.length, total: totalCount }) }}
           </p>
           
           <!-- View Toggle -->
           <div class="flex items-center space-x-2">
-            <span class="text-sm text-gray-600">View:</span>
+            <span class="text-sm text-gray-600">{{ $t('posts.view') }}:</span>
             <button
               class="p-2 rounded-lg transition-colors"
               :class="viewMode === 'grid' ? 'bg-blue-100 text-blue-600' : 'text-gray-400 hover:text-gray-600'"
@@ -119,7 +117,7 @@
                   :src="post.imageUrl"
                   :alt="post.title"
                   class="h-48 w-full md:h-full object-cover"
-                />
+                >
                 <div
                   v-else
                   class="h-48 w-full md:h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center"
@@ -189,7 +187,10 @@
             </button>
 
             <!-- Page Numbers -->
-            <template v-for="page in visiblePages" :key="page">
+            <template
+              v-for="page in visiblePages"
+              :key="page"
+            >
               <button
                 v-if="typeof page === 'number'"
                 class="px-3 py-2 text-sm font-medium border border-gray-300 hover:bg-gray-50 transition-colors"
@@ -221,7 +222,7 @@
 
         <!-- Page Info -->
         <div class="mt-4 text-center text-sm text-gray-600">
-          Page {{ currentPage }} of {{ totalPages }}
+          {{ $t('common.page') }} {{ currentPage }} {{ $t('common.of') }} {{ totalPages }}
         </div>
       </div>
     </div>
@@ -229,8 +230,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { ref, computed, onMounted, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import {
   ExclamationTriangleIcon,
   DocumentTextIcon,
@@ -240,9 +241,9 @@ import {
   ChevronRightIcon,
   Squares2X2Icon,
   ListBulletIcon
-} from '@heroicons/vue/24/outline';
-import { postService, type PublicPost } from '@/services';
-import PostCard from '@/components/PostCard.vue';
+} from "@heroicons/vue/24/outline";
+import { postService, type PublicPost } from "@/services";
+import PostCard from "@/components/PostCard.vue";
 
 // Router
 const route = useRoute();
@@ -252,7 +253,7 @@ const router = useRouter();
 const posts = ref<PublicPost[]>([]);
 const isLoading = ref(false);
 const error = ref<string | null>(null);
-const viewMode = ref<'grid' | 'list'>('grid');
+const viewMode = ref<"grid" | "list">("grid");
 
 // Pagination state
 const currentPage = ref(1);
@@ -280,23 +281,23 @@ const visiblePages = computed(() => {
       for (let i = 1; i <= 5; i++) {
         pages.push(i);
       }
-      pages.push('...');
+      pages.push("...");
       pages.push(total);
     } else if (current >= total - 3) {
       // Show last pages
       pages.push(1);
-      pages.push('...');
+      pages.push("...");
       for (let i = total - 4; i <= total; i++) {
         pages.push(i);
       }
     } else {
       // Show middle pages
       pages.push(1);
-      pages.push('...');
+      pages.push("...");
       for (let i = current - 1; i <= current + 1; i++) {
         pages.push(i);
       }
-      pages.push('...');
+      pages.push("...");
       pages.push(total);
     }
   }
@@ -330,8 +331,8 @@ const fetchPosts = async (resetPage = false) => {
     
     router.replace({ query });
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Failed to load posts';
-    console.error('Failed to fetch posts:', err);
+    error.value = err instanceof Error ? err.message : "Failed to load posts";
+    console.error("Failed to fetch posts:", err);
   } finally {
     isLoading.value = false;
   }
@@ -343,19 +344,19 @@ const goToPage = (page: number) => {
     fetchPosts();
     
     // Scroll to top
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 };
 
 const formatDate = (dateString: string) => {
   try {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric"
     });
   } catch {
-    return 'Invalid date';
+    return "Invalid date";
   }
 };
 
@@ -365,7 +366,7 @@ const formatDate = (dateString: string) => {
 const initializeFromUrl = () => {
   const pageParam = route.query.page;
   
-  if (pageParam && typeof pageParam === 'string') {
+  if (pageParam && typeof pageParam === "string") {
     const page = parseInt(pageParam);
     if (!isNaN(page) && page > 0) {
       currentPage.value = page;
@@ -375,7 +376,7 @@ const initializeFromUrl = () => {
 
 // Watchers
 watch(() => route.query, () => {
-  if (route.name === 'PostGrid') {
+  if (route.name === "PostGrid") {
     initializeFromUrl();
   }
 });

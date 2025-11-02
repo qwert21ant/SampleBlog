@@ -6,7 +6,7 @@
       class="flex justify-center items-center py-16"
     >
       <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
-      <span class="ml-3 text-lg text-gray-600">Loading post...</span>
+      <span class="ml-3 text-lg text-gray-600">{{ $t('posts.loading') }}</span>
     </div>
 
     <!-- Error State -->
@@ -16,19 +16,19 @@
     >
       <div class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
         <ExclamationTriangleIcon class="h-12 w-12 text-red-500 mx-auto mb-4" />
-        <h3 class="text-lg font-semibold text-red-800 mb-2">Failed to load post</h3>
+        <h3 class="text-lg font-semibold text-red-800 mb-2">{{ $t('posts.failedToLoad') }}</h3>
         <p class="text-red-600 mb-4">{{ error }}</p>
         <button 
           class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors mr-4"
           @click="fetchPost"
         >
-          Try Again
+          {{ $t('posts.tryAgain') }}
         </button>
         <button 
           class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
           @click="goBack"
         >
-          Back to Posts
+          {{ $t('posts.backToPosts') }}
         </button>
       </div>
     </div>
@@ -45,7 +45,7 @@
           @click="goBack"
         >
           <ArrowLeftIcon class="h-5 w-5 mr-2" />
-          Back to Posts
+          {{ $t('posts.backToPosts') }}
         </button>
       </nav>
 
@@ -70,7 +70,7 @@
         <div class="flex flex-wrap items-center gap-4 text-gray-600 mb-6">
           <div class="flex items-center">
             <UserCircleIcon class="h-5 w-5 mr-2" />
-            <span>{{ post.author || 'Anonymous' }}</span>
+            <span>{{ post.author || $t('posts.anonymous') }}</span>
           </div>
           <div class="flex items-center">
             <CalendarIcon class="h-5 w-5 mr-2" />
@@ -176,10 +176,21 @@
 
       <!-- Post Content -->
       <div class="prose prose-lg max-w-none">
-        <div
-          class="text-gray-800 leading-relaxed"
-          v-html="formattedContent"
-        />
+        <div class="text-gray-800 leading-relaxed">
+          <p 
+            v-for="(paragraph, index) in contentParagraphs" 
+            :key="index"
+            class="mb-5 leading-relaxed"
+          >
+            <span 
+              v-for="(line, lineIndex) in paragraph.lines" 
+              :key="lineIndex"
+            >
+              {{ line }}
+              <br v-if="lineIndex < paragraph.lines.length - 1">
+            </span>
+          </p>
+        </div>
       </div>
 
 
@@ -191,7 +202,7 @@
             class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-3 rounded-lg transition-colors font-medium"
             @click="scrollToTop"
           >
-            ↑ Back to Top
+            ↑ {{ $t('posts.backToTop') }}
           </button>
         </div>
       </div>
@@ -202,6 +213,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import { 
   ExclamationTriangleIcon, 
   ArrowLeftIcon, 
@@ -219,6 +231,7 @@ interface Props {
 const props = defineProps<Props>();
 const route = useRoute();
 const router = useRouter();
+const { t } = useI18n();
 
 // Reactive state
 const post = ref<PublicPost | null>(null);
@@ -241,13 +254,16 @@ const formattedDate = computed(() => {
   }
 });
 
-const formattedContent = computed(() => {
-  if (!post.value?.content) return "";
-  // Convert line breaks to paragraphs
+const contentParagraphs = computed(() => {
+  if (!post.value?.content) return [];
+  
+  // Split content into paragraphs and then lines
   return post.value.content
     .split("\n\n")
-    .map(paragraph => `<p>${paragraph.replace(/\n/g, "<br>")}</p>`)
-    .join("");
+    .filter(paragraph => paragraph.trim()) // Remove empty paragraphs
+    .map(paragraph => ({
+      lines: paragraph.split("\n").filter(line => line.trim()) // Remove empty lines
+    }));
 });
 
 // Methods
@@ -274,7 +290,7 @@ const fetchPost = async () => {
     postImages.value = images;
     currentImageIndex.value = 0; // Reset image index when loading new post
   } catch (err) {
-    error.value = err instanceof Error ? err.message : "An unexpected error occurred";
+    error.value = err instanceof Error ? err.message : t("common.unexpectedError");
     console.error("Failed to fetch post:", err);
   } finally {
     isLoading.value = false;
@@ -298,7 +314,7 @@ const goBack = () => {
     router.go(-1);
   } else {
     // Fallback to posts grid page, or home if grid doesn't exist
-    router.push('/posts').catch(() => router.push('/'));
+    router.push("/posts").catch(() => router.push("/"));
   }
 };
 
@@ -334,11 +350,11 @@ const handleKeydown = (event: KeyboardEvent) => {
   if (postImages.value.length <= 1) return;
   
   switch (event.key) {
-    case 'ArrowLeft':
+    case "ArrowLeft":
       event.preventDefault();
       previousImage();
       break;
-    case 'ArrowRight':
+    case "ArrowRight":
       event.preventDefault();
       nextImage();
       break;
@@ -378,11 +394,11 @@ const handleSwipe = () => {
 // Lifecycle
 onMounted(() => {
   fetchPost();
-  document.addEventListener('keydown', handleKeydown);
+  document.addEventListener("keydown", handleKeydown);
 });
 
 onUnmounted(() => {
-  document.removeEventListener('keydown', handleKeydown);
+  document.removeEventListener("keydown", handleKeydown);
 });
 </script>
 

@@ -3,8 +3,8 @@
     <!-- Hero Section -->
     <div class="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-16 mb-8">
       <div class="max-w-4xl mx-auto px-4 text-center">
-        <h1 class="text-4xl md:text-6xl font-bold mb-4">Welcome to SampleBlog</h1>
-        <p class="text-xl md:text-2xl opacity-90">Discover amazing stories and insights</p>
+        <h1 class="text-4xl md:text-6xl font-bold mb-4">{{ $t('home.welcomeTitle') }}</h1>
+        <p class="text-xl md:text-2xl opacity-90">{{ $t('home.welcomeSubtitle') }}</p>
       </div>
     </div>
 
@@ -14,7 +14,7 @@
       class="flex justify-center items-center py-16"
     >
       <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
-      <span class="ml-3 text-lg text-gray-600">Loading latest posts...</span>
+      <span class="ml-3 text-lg text-gray-600">{{ $t('posts.loadingPosts') }}</span>
     </div>
 
     <!-- Error State -->
@@ -24,13 +24,13 @@
     >
       <div class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
         <ExclamationTriangleIcon class="h-12 w-12 text-red-500 mx-auto mb-4" />
-        <h3 class="text-lg font-semibold text-red-800 mb-2">Failed to load posts</h3>
+        <h3 class="text-lg font-semibold text-red-800 mb-2">{{ $t('posts.failedToLoad') }}</h3>
         <p class="text-red-600 mb-4">{{ error }}</p>
         <button 
           class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
           @click="fetchPosts"
         >
-          Try Again
+          {{ $t('posts.tryAgain') }}
         </button>
       </div>
     </div>
@@ -45,12 +45,12 @@
         class="text-center py-16"
       >
         <DocumentIcon class="h-16 w-16 text-gray-400 mx-auto mb-4" />
-        <h3 class="text-xl font-semibold text-gray-600 mb-2">No posts yet</h3>
-        <p class="text-gray-500">Check back later for new content!</p>
+        <h3 class="text-xl font-semibold text-gray-600 mb-2">{{ $t('posts.noPosts') }}</h3>
+        <p class="text-gray-500">{{ $t('posts.checkBackLater') }}</p>
       </div>
       
       <div v-else>
-        <h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">Latest Posts</h2>
+        <h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">{{ $t('home.latestPosts') }}</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           <PostCard 
             v-for="post in posts" 

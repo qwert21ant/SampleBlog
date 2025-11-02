@@ -4,11 +4,11 @@
     <div class="mb-8">
       <div class="flex items-center justify-between">
         <div>
-          <h1 class="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p class="text-gray-600 mt-1">Manage your blog content and settings</p>
+          <h1 class="text-3xl font-bold text-gray-900">{{ $t('admin.dashboard') }}</h1>
+          <p class="text-gray-600 mt-1">{{ $t('admin.manageContent') }}</p>
         </div>
         <div class="flex items-center space-x-3">
-          <span class="text-sm text-gray-500">Welcome back,</span>
+          <span class="text-sm text-gray-500">{{ $t('admin.welcomeBack') }},</span>
           <span class="font-medium text-gray-900">{{ user?.username || user?.email }}</span>
         </div>
       </div>
@@ -20,7 +20,7 @@
         <div class="flex items-center">
           <DocumentTextIcon class="h-8 w-8 text-blue-500" />
           <div class="ml-4">
-            <p class="text-sm font-medium text-gray-500">Total Posts</p>
+            <p class="text-sm font-medium text-gray-500">{{ $t('admin.totalPosts') }}</p>
             <p class="text-2xl font-bold text-gray-900">{{ stats.totalPosts || 0 }}</p>
           </div>
         </div>
@@ -30,7 +30,7 @@
         <div class="flex items-center">
           <EyeIcon class="h-8 w-8 text-green-500" />
           <div class="ml-4">
-            <p class="text-sm font-medium text-gray-500">Published</p>
+            <p class="text-sm font-medium text-gray-500">{{ $t('admin.publishedPosts') }}</p>
             <p class="text-2xl font-bold text-gray-900">{{ stats.publishedPosts || 0 }}</p>
           </div>
         </div>
@@ -40,7 +40,7 @@
         <div class="flex items-center">
           <PencilIcon class="h-8 w-8 text-yellow-500" />
           <div class="ml-4">
-            <p class="text-sm font-medium text-gray-500">Drafts</p>
+            <p class="text-sm font-medium text-gray-500">{{ $t('admin.drafts') }}</p>
             <p class="text-2xl font-bold text-gray-900">{{ stats.draftPosts || 0 }}</p>
           </div>
         </div>
@@ -50,13 +50,13 @@
     <!-- Quick Actions -->
     <div class="bg-white rounded-lg shadow mb-8">
       <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
-        <h2 class="text-lg font-medium text-gray-900">Posts Management</h2>
+        <h2 class="text-lg font-medium text-gray-900">{{ $t('admin.postsManagement') }}</h2>
         <button
           class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           @click="createNewPost"
         >
           <PlusIcon class="h-5 w-5 mr-2" />
-          Create New Post
+          {{ $t('admin.createNewPost') }}
         </button>
       </div>
     </div>
@@ -64,7 +64,7 @@
     <!-- Posts List -->
     <div class="bg-white rounded-lg shadow">
       <div class="px-6 py-4 border-b border-gray-200">
-        <h2 class="text-lg font-medium text-gray-900">All Posts</h2>
+        <h2 class="text-lg font-medium text-gray-900">{{ $t('admin.allPosts') }}</h2>
       </div>
       <div class="p-6">
         <div
@@ -78,8 +78,8 @@
           class="text-center py-8"
         >
           <DocumentTextIcon class="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 class="text-lg font-medium text-gray-900 mb-2">No Posts Yet</h3>
-          <p class="text-gray-500">Create your first blog post to get started.</p>
+          <h3 class="text-lg font-medium text-gray-900 mb-2">{{ $t('admin.noPostsYet') }}</h3>
+          <p class="text-gray-500">{{ $t('admin.createFirstPost') }}</p>
         </div>
         <div
           v-else
@@ -102,11 +102,11 @@
     <!-- Delete Confirmation Dialog -->
     <ConfirmDialog
       :is-open="showDeleteConfirm"
-      :title="'Delete Post'"
-      :message="`Are you sure you want to delete &quot;${postToDelete?.title}&quot;? This action cannot be undone.`"
-      :confirm-text="'Delete'"
-      :cancel-text="'Cancel'"
-      :loading-text="'Deleting...'"
+      :title="t('admin.deletePost')"
+      :message="t('admin.confirmDeleteMessage', { title: postToDelete?.title || '' })"
+      :confirm-text="t('admin.deleteConfirm')"
+      :cancel-text="t('common.cancel')"
+      :loading-text="t('admin.deleting')"
       :loading="isDeletingPost"
       @confirm="confirmDeletePost"
       @cancel="cancelDeletePost"
@@ -117,6 +117,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import {
   DocumentTextIcon,
   EyeIcon,
@@ -132,6 +133,7 @@ import type { PostStatsDto, AdminPost } from "@/types";
 // Composables
 const { user, requireAdmin } = useAuth();
 const router = useRouter();
+const { t } = useI18n();
 
 // Reactive state
 const isLoadingStats = ref(true);
@@ -206,14 +208,6 @@ const loadPosts = async (refreshing = false) => {
   } finally {
     isLoadingPosts.value = false;
   }
-};
-
-// Refresh all data
-const refreshData = async () => {
-  await Promise.all([
-    loadStats(),
-    loadPosts(true)
-  ]);
 };
 
 // Action handlers

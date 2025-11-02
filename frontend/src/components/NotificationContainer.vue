@@ -54,8 +54,8 @@
           <!-- Close button -->
           <button
             class="flex-shrink-0 ml-3 text-gray-400 hover:text-gray-600 transition-colors"
-            @click="removeNotification(notification.id)"
             :aria-label="'Dismiss notification: ' + notification.title"
+            @click="removeNotification(notification.id)"
           >
             <XMarkIcon class="h-4 w-4" />
           </button>
@@ -66,39 +66,39 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed } from "vue";
 import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
   XCircleIcon,
   InformationCircleIcon,
   XMarkIcon
-} from '@heroicons/vue/24/outline'
-import { notificationService, type Notification } from '@/services/notificationService'
+} from "@heroicons/vue/24/outline";
+import { notificationService, type Notification } from "@/services/notificationService";
 
 // Reactive notifications from service
-const notifications = computed(() => notificationService.items)
+const notifications = computed(() => notificationService.items);
 
 // Methods
 const removeNotification = (id: string) => {
-  notificationService.remove(id)
-}
+  notificationService.remove(id);
+};
 
-const getNotificationClasses = (type: Notification['type']) => {
-  const baseClasses = 'bg-white border-l-4'
+const getNotificationClasses = (type: Notification["type"]) => {
+  const baseClasses = "bg-white border-l-4";
   
   switch (type) {
-    case 'success':
-      return `${baseClasses} border-l-green-500 shadow-green-100`
-    case 'warning':
-      return `${baseClasses} border-l-yellow-500 shadow-yellow-100`
-    case 'error':
-      return `${baseClasses} border-l-red-500 shadow-red-100`
-    case 'info':
+    case "success":
+      return `${baseClasses} border-l-green-500 shadow-green-100`;
+    case "warning":
+      return `${baseClasses} border-l-yellow-500 shadow-yellow-100`;
+    case "error":
+      return `${baseClasses} border-l-red-500 shadow-red-100`;
+    case "info":
     default:
-      return `${baseClasses} border-l-blue-500 shadow-blue-100`
+      return `${baseClasses} border-l-blue-500 shadow-blue-100`;
   }
-}
+};
 </script>
 
 <style scoped>

@@ -1,6 +1,6 @@
 // Backend DTOs - matching the server-side data transfer objects
 
-import { UserDto } from "./auth"
+import { UserDto } from "./auth";
 
 export interface PostSummaryDto {
   id: number

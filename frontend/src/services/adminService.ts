@@ -175,7 +175,7 @@ class AdminService extends BaseApiService {
 
   // Get image URL for admin context
   getImageUrl(imageId: number): string {
-    const baseURL = this.client.defaults.baseURL || '/api';
+    const baseURL = this.client.defaults.baseURL || "/api";
     return `${baseURL}/admin/images/${imageId}`;
   }
 
@@ -183,7 +183,7 @@ class AdminService extends BaseApiService {
   async fetchImageBlob(imageId: number): Promise<Blob> {
     try {
       const response = await this.getClient().get(`/admin/images/${imageId}`, {
-        responseType: 'blob'
+        responseType: "blob"
       });
       
       return response.data;

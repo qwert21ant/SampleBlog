@@ -14,7 +14,7 @@
       <div class="px-6 py-4 border-b border-gray-200">
         <div class="flex items-center justify-between">
           <h2 class="text-xl font-semibold text-gray-900">
-            {{ mode === 'login' ? 'Sign In' : 'Create Account' }}
+            {{ mode === 'login' ? $t('auth.signIn') : $t('auth.createAccount') }}
           </h2>
           <button
             class="text-gray-400 hover:text-gray-600 transition-colors"
@@ -51,7 +51,7 @@
               for="username"
               class="block text-sm font-medium text-gray-700 mb-1"
             >
-              Username
+              {{ $t('auth.username') }}
             </label>
             <input
               id="username"
@@ -78,7 +78,7 @@
               for="email"
               class="block text-sm font-medium text-gray-700 mb-1"
             >
-              Email Address
+              {{ $t('auth.email') }}
             </label>
             <input
               id="email"
@@ -102,7 +102,7 @@
               for="password"
               class="block text-sm font-medium text-gray-700 mb-1"
             >
-              Password
+              {{ $t('auth.password') }}
             </label>
             <div class="relative">
               <input
@@ -143,7 +143,7 @@
               for="confirmPassword"
               class="block text-sm font-medium text-gray-700 mb-1"
             >
-              Confirm Password
+              {{ $t('auth.confirmPassword') }}
             </label>
             <input
               id="confirmPassword"
@@ -177,20 +177,20 @@
               v-if="isLoading"
               class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"
             />
-            {{ mode === 'login' ? 'Sign In' : 'Create Account' }}
+            {{ mode === 'login' ? $t('auth.signIn') : $t('auth.createAccount') }}
           </button>
 
           <!-- Mode Switch -->
           <div class="text-center">
             <span class="text-sm text-gray-600">
-              {{ mode === 'login' ? "Don't have an account?" : "Already have an account?" }}
+              {{ mode === 'login' ? $t('auth.noAccount') : $t('auth.haveAccount') }}
             </span>
             <button
               type="button"
               class="text-sm text-blue-600 hover:text-blue-700 font-medium ml-1"
               @click="switchMode"
             >
-              {{ mode === 'login' ? 'Sign up' : 'Sign in' }}
+              {{ mode === 'login' ? $t('auth.signUp') : $t('auth.signIn') }}
             </button>
           </div>
         </div>

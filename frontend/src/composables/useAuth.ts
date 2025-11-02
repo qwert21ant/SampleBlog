@@ -1,9 +1,8 @@
-import { ref, computed, reactive, readonly } from "vue";
+import { computed, reactive, readonly } from "vue";
 import { useRouter } from "vue-router";
 import { authService } from "@/services/authService";
 import type { 
-  AuthState, 
-  User, 
+  AuthState,
   LoginCredentials, 
   RegisterCredentials,
   ValidationErrors 

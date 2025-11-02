@@ -31,13 +31,13 @@
               :id="titleId"
               class="text-lg font-semibold text-gray-900 mb-2"
             >
-              {{ title }}
+              {{ displayTitle }}
             </h3>
             <p 
               :id="messageId"
               class="text-gray-600"
             >
-              {{ message }}
+              {{ displayMessage }}
             </p>
           </div>
 
@@ -45,23 +45,23 @@
           <div class="flex space-x-3">
             <button
               class="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
-              @click="handleCancel"
               :disabled="loading"
+              @click="handleCancel"
             >
-              {{ cancelText }}
+              {{ displayCancelText }}
             </button>
             <button
               class="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
-              @click="handleConfirm"
               :disabled="loading"
+              @click="handleConfirm"
             >
-              <span v-if="!loading">{{ confirmText }}</span>
+              <span v-if="!loading">{{ displayConfirmText }}</span>
               <span 
                 v-else
                 class="flex items-center justify-center"
               >
                 <div class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2" />
-                {{ loadingText }}
+                {{ displayLoadingText }}
               </span>
             </button>
           </div>
@@ -72,8 +72,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { ExclamationTriangleIcon } from '@heroicons/vue/24/outline'
+import { computed } from "vue";
+import { useI18n } from "vue-i18n";
+import { ExclamationTriangleIcon } from "@heroicons/vue/24/outline";
 
 // Props
 interface Props {
@@ -86,71 +87,75 @@ interface Props {
   loading?: boolean
 }
 
+const { t } = useI18n();
+
 const props = withDefaults(defineProps<Props>(), {
-  title: 'Confirm Action',
-  message: 'Are you sure you want to proceed?',
-  confirmText: 'Confirm',
-  cancelText: 'Cancel',
-  loadingText: 'Processing...',
   loading: false
-})
+});
+
+// Computed properties for translated defaults
+const displayTitle = computed(() => props.title || t("common.confirmAction"));
+const displayMessage = computed(() => props.message || t("common.confirmMessage"));
+const displayConfirmText = computed(() => props.confirmText || t("common.confirm"));
+const displayCancelText = computed(() => props.cancelText || t("common.cancel"));
+const displayLoadingText = computed(() => props.loadingText || t("common.processing"));
 
 // Emits
 const emit = defineEmits<{
   confirm: []
   cancel: []
   close: []
-}>()
+}>();
 
 // Computed
-const titleId = computed(() => `confirm-title-${Math.random().toString(36).substr(2, 9)}`)
-const messageId = computed(() => `confirm-message-${Math.random().toString(36).substr(2, 9)}`)
+const titleId = computed(() => `confirm-title-${Math.random().toString(36).substr(2, 9)}`);
+const messageId = computed(() => `confirm-message-${Math.random().toString(36).substr(2, 9)}`);
 
 // Methods
 const handleConfirm = () => {
   if (!props.loading) {
-    emit('confirm')
+    emit("confirm");
   }
-}
+};
 
 const handleCancel = () => {
   if (!props.loading) {
-    emit('cancel')
-    emit('close')
+    emit("cancel");
+    emit("close");
   }
-}
+};
 
 // Handle escape key
 const handleKeydown = (event: KeyboardEvent) => {
-  if (event.key === 'Escape' && !props.loading) {
-    handleCancel()
+  if (event.key === "Escape" && !props.loading) {
+    handleCancel();
   }
-}
+};
 
 // Add/remove event listeners when dialog opens/closes
 watch(() => props.isOpen, (isOpen) => {
   if (isOpen) {
-    document.addEventListener('keydown', handleKeydown)
-    document.body.style.overflow = 'hidden'
+    document.addEventListener("keydown", handleKeydown);
+    document.body.style.overflow = "hidden";
   } else {
-    document.removeEventListener('keydown', handleKeydown)
-    document.body.style.overflow = ''
+    document.removeEventListener("keydown", handleKeydown);
+    document.body.style.overflow = "";
   }
-}, { immediate: true })
+}, { immediate: true });
 
 // Cleanup on unmount
 onUnmounted(() => {
-  document.removeEventListener('keydown', handleKeydown)
-  document.body.style.overflow = ''
-})
+  document.removeEventListener("keydown", handleKeydown);
+  document.body.style.overflow = "";
+});
 </script>
 
 <script lang="ts">
-import { watch, onUnmounted } from 'vue'
+import { watch, onUnmounted } from "vue";
 
 export default {
-  name: 'ConfirmDialog'
-}
+  name: "ConfirmDialog"
+};
 </script>
 
 <style scoped>

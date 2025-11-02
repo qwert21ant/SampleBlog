@@ -7,10 +7,10 @@
           <div class="flex items-center justify-between">
             <div>
               <h1 class="text-2xl font-bold text-gray-900">
-                {{ isEditing ? 'Edit Post' : 'Create New Post' }}
+                {{ isEditing ? $t('postEditor.editPost') : $t('postEditor.createNewPost') }}
               </h1>
               <p class="text-sm text-gray-500 mt-1">
-                {{ isEditing ? 'Update your existing post' : 'Write and publish a new blog post' }}
+                {{ isEditing ? $t('postEditor.updatePost') : $t('postEditor.writeNewPost') }}
               </p>
             </div>
             <button
@@ -18,7 +18,7 @@
               @click="goBack"
             >
               <ArrowLeftIcon class="h-4 w-4 mr-2" />
-              Back to Admin
+              {{ $t('postEditor.backToAdmin') }}
             </button>
           </div>
         </div>
@@ -30,7 +30,7 @@
         class="bg-white shadow rounded-lg p-8 text-center"
       >
         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4" />
-        <p class="text-gray-500">Loading post data...</p>
+        <p class="text-gray-500">{{ $t('postEditor.loadingPost') }}</p>
       </div>
 
       <!-- Load Error -->
@@ -70,14 +70,14 @@
             for="title"
             class="block text-sm font-medium text-gray-700 mb-2"
           >
-            Title <span class="text-red-500">*</span>
+            {{ $t('postEditor.title') }} <span class="text-red-500">*</span>
           </label>
           <input
             id="title"
             v-model="form.title"
             type="text"
             required
-            placeholder="Enter post title..."
+            :placeholder="$t('postEditor.enterTitle')"
             class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 text-lg"
           >
         </div>
@@ -88,14 +88,14 @@
             for="subtitle"
             class="block text-sm font-medium text-gray-700 mb-2"
           >
-            Subtitle <span class="text-red-500">*</span>
+            {{ $t('postEditor.subtitle') }} <span class="text-red-500">*</span>
           </label>
           <input
             id="subtitle"
             v-model="form.subtitle"
             type="text"
             required
-            placeholder="Enter post subtitle..."
+            :placeholder="$t('postEditor.enterSubtitle')"
             class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
           >
         </div>
@@ -103,8 +103,8 @@
         <!-- Images Slider -->
         <div class="bg-white shadow rounded-lg p-6">
           <label class="block text-sm font-medium text-gray-700 mb-4">
-            Images
-            <span class="text-gray-500 font-normal">(Optional - drag & drop or click to upload)</span>
+            {{ $t('postEditor.images') }}
+            <span class="text-gray-500 font-normal">{{ $t('postEditor.imagesOptional') }}</span>
           </label>
           
           <div class="relative">
@@ -153,10 +153,10 @@
                 >
                   <CloudArrowUpIcon class="h-12 w-12 text-gray-400 mb-2" />
                   <p class="text-sm text-gray-500 text-center">
-                    <span class="font-medium">Click to upload</span><br>
-                    or drag and drop
+                    <span class="font-medium">{{ $t('postEditor.clickToUpload') }}</span><br>
+                    {{ $t('postEditor.dragAndDrop') }}
                   </p>
-                  <p class="text-xs text-gray-400 mt-1">PNG, JPG, GIF up to 5MB</p>
+                  <p class="text-xs text-gray-400 mt-1">{{ $t('postEditor.fileFormat') }}</p>
                 </div>
               </div>
             </div>
@@ -177,7 +177,7 @@
             v-if="images.length > 0"
             class="mt-2 text-sm text-gray-500"
           >
-            {{ images.length }} image{{ images.length !== 1 ? 's' : '' }} selected
+            {{ $t('postEditor.imagesSelected', images.length) }}
           </div>
         </div>
 
@@ -187,17 +187,17 @@
             for="content"
             class="block text-sm font-medium text-gray-700 mb-2"
           >
-            Content
+            {{ $t('postEditor.content') }}
           </label>
           <textarea
             id="content"
             v-model="form.text"
             rows="20"
-            placeholder="Write your post content here..."
+            :placeholder="$t('postEditor.writeContent')"
             class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 resize-vertical"
           />
           <p class="mt-2 text-sm text-gray-500">
-            Plain text content. You can format it later.
+            {{ $t('postEditor.plainTextContent') }}
           </p>
         </div>
 
@@ -244,7 +244,7 @@
                   v-else
                   class="h-4 w-4 mr-2"
                 />
-                {{ isSaving ? 'Saving...' : 'Save as Draft' }}
+                {{ isSaving ? $t('postEditor.saving') : $t('postEditor.saveAsDraft') }}
               </button>
             </div>
             <div class="flex space-x-3">
@@ -254,7 +254,7 @@
                 class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 @click="goBack"
               >
-                Cancel
+                {{ $t('common.cancel') }}
               </button>
               <button
                 type="submit"
@@ -269,7 +269,7 @@
                   v-else
                   class="h-4 w-4 mr-2"
                 />
-                {{ isSaving ? 'Publishing...' : (isEditing ? 'Update & Publish' : 'Create & Publish') }}
+                {{ isSaving ? $t('postEditor.publishing') : (isEditing ? $t('postEditor.updateAndPublish') : $t('postEditor.createAndPublish')) }}
               </button>
             </div>
           </div>
@@ -282,6 +282,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import {
   ArrowLeftIcon,
   CloudArrowUpIcon,
@@ -290,7 +291,7 @@ import {
   CheckIcon
 } from "@heroicons/vue/24/outline";
 import { adminService, notificationService } from "@/services";
-import type { AdminPost, CreatePostDto, UpdatePostDto } from "@/types";
+import type { CreatePostDto, UpdatePostDto } from "@/types";
 
 // Types
 interface ImageFile {
@@ -310,6 +311,7 @@ interface PostForm {
 // Router
 const route = useRoute();
 const router = useRouter();
+const { t } = useI18n();
 
 // Reactive data
 const form = ref<PostForm>({
@@ -346,13 +348,6 @@ const handleFileSelect = (event: Event) => {
   const target = event.target as HTMLInputElement;
   if (target.files) {
     addImages(Array.from(target.files));
-  }
-};
-
-const handleDrop = (event: DragEvent) => {
-  event.preventDefault();
-  if (event.dataTransfer?.files) {
-    addImages(Array.from(event.dataTransfer.files));
   }
 };
 
@@ -405,7 +400,7 @@ const removeImage = async (index: number) => {
   }
   
   // Clean up blob URL if it's an existing image
-  if (imageToRemove.isExisting && imageToRemove.preview.startsWith('blob:')) {
+  if (imageToRemove.isExisting && imageToRemove.preview.startsWith("blob:")) {
     URL.revokeObjectURL(imageToRemove.preview);
   }
   
@@ -430,7 +425,7 @@ const saveNewImages = async (postId: number) => {
 
 const handleSubmit = async () => {
   if (!form.value.title.trim() || !form.value.subtitle.trim()) {
-    saveError.value = "Please fill in all required fields (title and subtitle)";
+    saveError.value = t("postEditor.fillRequiredFields");
     return;
   }
 
@@ -482,7 +477,7 @@ const handleSubmit = async () => {
 
 const saveDraft = async () => {
   if (!form.value.title.trim() || !form.value.subtitle.trim()) {
-    saveError.value = "Please fill in at least the title and subtitle to save as draft";
+    saveError.value = t("postEditor.fillTitleSubtitle");
     return;
   }
 
@@ -609,7 +604,7 @@ onMounted(async () => {
 // Cleanup blob URLs on component unmount to prevent memory leaks
 onUnmounted(() => {
   images.value.forEach(img => {
-    if (img.isExisting && img.preview.startsWith('blob:')) {
+    if (img.isExisting && img.preview.startsWith("blob:")) {
       URL.revokeObjectURL(img.preview);
     }
   });
