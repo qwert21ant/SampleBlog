@@ -38,7 +38,7 @@
     "publishedOn": "Published on",
     "author": "Author",
     "date": "Date",
-    "noPostsAvailable": "No posts available",
+    "noPosts": "No posts available",
     "checkBackLater": "Check back later for new content",
     "failedToLoad": "Failed to load posts",
     "tryAgain": "Try Again",
@@ -163,7 +163,6 @@
     "welcomeTitle": "Welcome to SampleBlog",
     "welcomeSubtitle": "Discover amazing articles and insights",
     "latestPosts": "Latest Posts",
-    "viewAllPosts": "View All Posts",
-    "noPosts": "No posts to display"
+    "viewAllPosts": "View All Posts"
   }
 }
